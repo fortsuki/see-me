@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  name          String?
+  bio           String?
+  avatarUrl     String?
+  bannerUrl     String?
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  posts         Post[]
+  links         Link[]
+  loginAttempts LoginAttempt[]
+  rateLimits    RateLimit[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Link {
+  id      String @id @default(cuid())
+  url     String
+  title   String?
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: CASCADE)
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  ip        String
+  email     String?  // optional, can be null to avoid enumeration
+  success   Boolean
+  createdAt DateTime @default(now())
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   // e.g., "login:192.168.1.1" or "search:userId"
+  count     Int
+  expiresAt DateTime
+}
